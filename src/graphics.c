@@ -75,9 +75,6 @@ int close_app(struct s_context *ctx)
 
 int create_context(struct s_context *cxt, const char *title, const int sizex, const int sizey)
 {
-	// TO-DO: add mixer initialization
-	#warning mixer init missing
-
 	if(SDL_Init(SDL_INIT_EVERYTHING))
 	{
 		log_error("Could not initialize SDL", "create_context", SDL_GetError(), 1);

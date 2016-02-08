@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h> // Seed for rand()
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
 
 #include "input.h"
 #include "graphics.h"
@@ -18,10 +19,13 @@ int main(void)
 	int char_pos = 0;
 
 	char morse_in[32] = {""};
-	char asciilist[26][2] = {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
+	char asciilist[26][2] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
 	char morselist[26][6] = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.."};
+	char filename[32] = {""};
 
 	struct s_context cxt;
+
+	Mix_Music *morsesound;
 
 	SDL_Event ev;
 
@@ -47,10 +51,18 @@ int main(void)
 
 	srand(time(NULL));
 
-	if(create_context(&cxt, "Morse Trainer", WINW, WINH) < 0){
+	if(create_context(&cxt, "Morse Trainer", WINW, WINH) < 0)
+	{
 		log_error("Couldn't create context", "main", SDL_GetError(), 1);
 		close_app(&cxt);
 	}
+
+	if(Mix_Init(0))
+		log_error("Couldn't init SDL_Mixer", "main", Mix_GetError(), 0);
+
+	// Open audio device
+	if(Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 1024) < 0)
+		log_error("Couldn't open audio device", "main", Mix_GetError(), 0);
 
 	txt_pos.x = 70;
 	txt_pos.y = 25;
@@ -84,31 +96,65 @@ int main(void)
 
 	clear_screen(&cxt);
 
-	while(opt == ASCIIMORSE)
+	while(opt != 0)
 	{
 		// get random number to define char to be trained
 		char_pos = rand() % 26;
 
-		if(get_text(&cxt, asciilist[char_pos], morse_in) == SDL_QUIT)
-		{
-			close_app(&cxt);
-			return 0;
-		}
-
 		txt_pos.x = 70;
 		txt_pos.y = 70;
 
-		if(!strcmp(morselist[char_pos], morse_in)){
-			clear_screen(&cxt);
-			blit_text(&cxt, 30, "RIGHT ANSWER", "res/font.ttf", txt_pos);
-		} else {
-			clear_screen(&cxt);
-			blit_text(&cxt, 30, "WRONG ANSWER", "res/font.ttf", txt_pos);
+		if(opt == MORSEASCII){
+
+			// Play sound
+			sprintf(filename, "res/snd/%c_morse_code.ogg", asciilist[char_pos][0]);
+			morsesound = Mix_LoadMUS(filename);
+			if(Mix_PlayMusic(morsesound, -1) < 0 || morsesound == NULL)
+				log_error("Couldn't load and play sound", "main", Mix_GetError(), 0);
+
+			if(get_text(&cxt, morselist[char_pos], morse_in) == SDL_QUIT)
+			{
+				close_app(&cxt);
+				return 0;
+			}
+
+			// Stop sound
+			Mix_HaltMusic();
+			Mix_FreeMusic(morsesound);
+
+			morse_in[0] = toupper(morse_in[0]);
+
+			if(!strcmp(asciilist[char_pos], morse_in)){
+				clear_screen(&cxt);
+				blit_text(&cxt, 30, "RIGHT ANSWER", "res/font.ttf", txt_pos);
+			} else {
+				clear_screen(&cxt);
+				blit_text(&cxt, 30, "WRONG ANSWER", "res/font.ttf", txt_pos);
+			}
+
+			blit_button(&cxt, "res/base_100x200.png", ok, "OK", "res/font.ttf");
+
+			show(cxt);
+
+		} else if(opt == ASCIIMORSE) {
+			if(get_text(&cxt, asciilist[char_pos], morse_in) == SDL_QUIT)
+			{
+				close_app(&cxt);
+				return 0;
+			}
+
+			if(!strcmp(morselist[char_pos], morse_in)){
+				clear_screen(&cxt);
+				blit_text(&cxt, 30, "RIGHT ANSWER", "res/font.ttf", txt_pos);
+			} else {
+				clear_screen(&cxt);
+				blit_text(&cxt, 30, "WRONG ANSWER", "res/font.ttf", txt_pos);
+			}
+
+			blit_button(&cxt, "res/base_100x200.png", ok, "OK", "res/font.ttf");
+
+			show(cxt);
 		}
-
-		blit_button(&cxt, "res/base_100x200.png", ok, "OK", "res/font.ttf");
-
-		show(cxt);
 
 		while(!clicked(ev, ok))
 		{
@@ -128,10 +174,6 @@ int main(void)
 				return 0;
 			}
 		}
-	}
-
-	while(opt == MORSEASCII)
-	{
 	}
 
 	close_app(&cxt);
