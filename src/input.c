@@ -81,6 +81,7 @@ int get_text(struct s_context *cxt, const char * msg, char * input_text)
 
 		blit_text(cxt, 30, tmp, "res/font.ttf", input_box);
 
+		SDL_Delay(1000/30);
 		show(*cxt);
 	}
 
