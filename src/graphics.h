@@ -22,6 +22,4 @@ int clear_screen(struct s_context *cxt);
 
 int blit_element(struct s_context *cxt, const char * path, SDL_Rect pos);
 
-int show_error_window(const char * msg);
-
 #endif

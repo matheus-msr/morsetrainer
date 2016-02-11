@@ -39,7 +39,9 @@ int get_text(struct s_context *cxt, const char * msg, char * input_text)
 {
 	int got_text = 0;
 
-	char tmp[32] = {""};
+	const Uint8 *keybrd = NULL;
+
+	char tmp[8] = {""};
 
 	SDL_Rect txt;
 	SDL_Rect input_box;
@@ -58,28 +60,32 @@ int get_text(struct s_context *cxt, const char * msg, char * input_text)
 
 	blit_text(cxt, 30, msg, "res/font.ttf", txt);
 
+	SDL_FillRect(cxt->screen, &input_box, SDL_MapRGB(cxt->screen->format, 255, 255, 255));
+
 	while(!got_text)
 	{
-		SDL_FillRect(cxt->screen, &input_box, SDL_MapRGB(cxt->screen->format, 255, 255, 255));
-
 		while(SDL_PollEvent(&ev))
 		{
-			const Uint8 *keybrd =  SDL_GetKeyboardState(NULL);
+			keybrd = SDL_GetKeyboardState(NULL);
 
-			if(keybrd[SDL_SCANCODE_BACKSPACE])
+			if(keybrd[SDL_SCANCODE_BACKSPACE] && strlen(tmp) > 0){
 				tmp[strlen(tmp) - 1] = '\0';
+				SDL_FillRect(cxt->screen, &input_box, SDL_MapRGB(cxt->screen->format, 255, 255, 255));
+				blit_text(cxt, 30, tmp, "res/font.ttf", input_box);
 
-			else if(keybrd[SDL_SCANCODE_RETURN])
+			} else if(keybrd[SDL_SCANCODE_RETURN]) {
 				got_text = 1;
+			}
 
-			if(ev.type == SDL_TEXTINPUT && strlen(tmp) < 7)
+			if(ev.type == SDL_TEXTINPUT && strlen(tmp) < 5 && ev.text.text != NULL) {
 				strcat(tmp, ev.text.text);
+				SDL_FillRect(cxt->screen, &input_box, SDL_MapRGB(cxt->screen->format, 255, 255, 255));
+				blit_text(cxt, 30, tmp, "res/font.ttf", input_box);
 
-			else if(ev.type == SDL_QUIT)
+			} else if(ev.type == SDL_QUIT) {
 				return SDL_QUIT;
+			}
 		}
-
-		blit_text(cxt, 30, tmp, "res/font.ttf", input_box);
 
 		SDL_Delay(1000/30);
 		show(*cxt);

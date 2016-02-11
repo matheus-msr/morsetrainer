@@ -12,11 +12,13 @@
 #define WINH 400
 #define ASCIIMORSE 1
 #define MORSEASCII 2
+#define CLICKED_OK 1
 
 int main(void)
 {
 	int opt = 0;
 	int char_pos = 0;
+	int ok_click = 0;
 
 	char morse_in[32] = {""};
 	char asciilist[26][2] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
@@ -136,6 +138,8 @@ int main(void)
 
 			show(cxt);
 
+			strcpy(morse_in, "");
+
 		} else if(opt == ASCIIMORSE) {
 			if(get_text(&cxt, asciilist[char_pos], morse_in) == SDL_QUIT)
 			{
@@ -154,19 +158,24 @@ int main(void)
 			blit_button(&cxt, "res/base_100x200.png", ok, "OK", "res/font.ttf");
 
 			show(cxt);
+
+			strcpy(morse_in, "");
 		}
 
-		while(!clicked(ev, ok))
+		ok_click = 0;
+
+		while(ok_click != CLICKED_OK)
 		{
 			// wait 100 ms for the user to release the return key pressed for inputting the text
-			SDL_Delay(100);
+			SDL_Delay(50);
 			const Uint8 *keyboard =  SDL_GetKeyboardState(NULL);
 
+			wait_unpress(&ev);
 			SDL_PollEvent(&ev);
 
 			// is return pressed? if yes, leave loop, if no, stay in loop
-			if(keyboard[SDL_SCANCODE_RETURN] != 0)
-				break;
+			if(keyboard[SDL_SCANCODE_RETURN] || clicked(ev, ok))
+				ok_click = CLICKED_OK;
 
 			if(ev.type == SDL_QUIT)
 			{
@@ -177,6 +186,5 @@ int main(void)
 	}
 
 	close_app(&cxt);
-
 	return 0;
 }

@@ -30,11 +30,11 @@ int blit_button(struct s_context *cxt, const char *path, SDL_Rect pos, const cha
 		return -1;
 	}
 
-	// Set text to fully opaque green-ish white (0xB0FEB0)
-	c.r = 0xB0;
-	c.g = 0xFE;
-	c.b = 0xB0;
-	c.a = 0xFE;
+	// Set text to fully opaque green-ish blue (0x00A0A0)
+	c.r = 0x00;
+	c.g = 0xA0;
+	c.b = 0xA0;
+	c.a = 0xFF;
 
 	tmp = TTF_RenderText_Blended(f, text, c);
 
@@ -103,9 +103,9 @@ int create_context(struct s_context *cxt, const char *title, const int sizex, co
 		close_app(cxt);
 	}
 
-	// Set background as pale green (0x90EE90)
+	// Set background as grey (0xD3D3D3)
 	cxt->screen = SDL_GetWindowSurface(cxt->win);
-	SDL_FillRect(cxt->screen, NULL, SDL_MapRGB(cxt->screen->format, 0x90, 0xEE, 0x90));
+	SDL_FillRect(cxt->screen, NULL, SDL_MapRGB(cxt->screen->format, 0xD3, 0xD3, 0xD3));
 
 	return 0;
 }
@@ -129,17 +129,19 @@ int blit_text(struct s_context * cxt, const int size, const char *text, const ch
 
 	SDL_Colour c;
 
-	TTF_Font *f = TTF_OpenFont(fpath, size);
+	TTF_Font *f = NULL;
 
-	// fully opaque pale green
-	c.r = 0xB0;
+	f = TTF_OpenFont(fpath, size);
+
+	// fully opaque black (0x000000)
+	c.r = 0x00;
 	c.g = 0x00;
-	c.b = 0xB0;
+	c.b = 0x00;
 	c.a = 0xFF;
 
 	// in case there's nothing to blit here
 	if(strlen(text) == 0)
-		return 0;
+		return -1;
 
 	tmp = TTF_RenderText_Blended(f, text, c);
 
@@ -161,7 +163,7 @@ int clear_screen(struct s_context * cxt)
 {
 	// Clean main surface
 	cxt->screen = SDL_GetWindowSurface(cxt->win);
-	SDL_FillRect(cxt->screen, NULL, SDL_MapRGB(cxt->screen->format, 0x90, 0xEE, 0x90));
+	SDL_FillRect(cxt->screen, NULL, SDL_MapRGB(cxt->screen->format, 0xD3, 0xD3, 0xD3));
 
 	return 0;
 }
@@ -179,51 +181,6 @@ int blit_element(struct s_context * cxt, const char * path, SDL_Rect pos)
 	SDL_BlitSurface(element, NULL, cxt->screen, &pos);
 
 	SDL_FreeSurface(element);
-
-	return 0;
-}
-
-int show_error_window(const char * msg)
-{
-	SDL_Event errev;
-
-	struct s_context errormsgcxt;
-
-	SDL_Rect ok_b;
-	SDL_Rect txt;
-
-	txt.x = 130 - ((strlen(msg) * 10) / 2);
-	txt.y = 20;
-
-	ok_b.h = 30;
-	ok_b.w = 50;
-	ok_b.x = 100;
-	ok_b.y = 60;
-
-	errormsgcxt.win = SDL_CreateWindow("-ERROR-", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 250, 100, SDL_WINDOW_SHOWN);
-	errormsgcxt.ren = SDL_CreateRenderer(errormsgcxt.win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-
-	clear_screen(&errormsgcxt);
-
-	blit_text(&errormsgcxt, 24, msg, "res/f.ttf", txt);
-
-	blit_element(&errormsgcxt, "res/OK_50x30.png", ok_b);
-
-	show(errormsgcxt);
-
-	while(1)
-	{
-		SDL_PollEvent(&errev);
-
-		if(clicked(errev, ok_b))
-		{
-			SDL_FreeSurface(errormsgcxt.screen);
-			SDL_DestroyWindow(errormsgcxt.win);
-			SDL_DestroyRenderer(errormsgcxt.ren);
-
-			return 0;
-		}
-	}
 
 	return 0;
 }
