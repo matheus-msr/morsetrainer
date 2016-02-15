@@ -1,6 +1,4 @@
-	*create new button style
-	*Add numbers to the alphabet
-	*add back button
-	*change name to morse memorizer
 	*document all the source code (inline and separated)
-	*check and fix any memory leaks
+	*enhance performance
+	*check and fix any memory leaks and every bug left
+	*put on gitlab and github

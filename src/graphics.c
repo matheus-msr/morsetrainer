@@ -30,10 +30,10 @@ int blit_button(struct s_context *cxt, const char *path, SDL_Rect pos, const cha
 		return -1;
 	}
 
-	// Set text to fully opaque green-ish blue (0x00A0A0)
+	// Set text to fully opaque black (0x00A0A0)
 	c.r = 0x00;
-	c.g = 0xA0;
-	c.b = 0xA0;
+	c.g = 0x00;
+	c.b = 0x00;
 	c.a = 0xFF;
 
 	tmp = TTF_RenderText_Blended(f, text, c);

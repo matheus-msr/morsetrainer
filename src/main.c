@@ -12,7 +12,9 @@
 #define WINH 400
 #define ASCIIMORSE 1
 #define MORSEASCII 2
+#define MAIN_MENU 3
 #define CLICKED_OK 1
+#define CLICKED_BACK 2
 
 int main(void)
 {
@@ -21,8 +23,8 @@ int main(void)
 	int ok_click = 0;
 
 	char morse_in[32] = {""};
-	char asciilist[26][2] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"};
-	char morselist[26][6] = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--.."};
+	char asciilist[36][2] = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+	char morselist[36][6] = {".-", "-...", "-.-.", "-..", ".", "..-.", "--.", "....", "..", ".---", "-.-", ".-..", "--", "-.", "---", ".--.", "--.-", ".-.", "...", "-", "..-", "...-", ".--", "-..-", "-.--", "--..", "-----", ".----", "..---", "...--", "....-", ".....", "-....", "--...", "---..", "----."};
 	char filename[32] = {""};
 
 	struct s_context cxt;
@@ -35,11 +37,17 @@ int main(void)
 	SDL_Rect abc_to_morse;
 	SDL_Rect morse_to_abc;
 	SDL_Rect ok;
+	SDL_Rect back;
 
 	ok.h = 100;
 	ok.w = 200;
 	ok.x = 50;
-	ok.y = 230;
+	ok.y = 130;
+
+	back.h = 100;
+	back.w = 200;
+	back.x = 50;
+	back.y = 240;
 
 	abc_to_morse.h = 100;
 	abc_to_morse.w = 200;
@@ -66,42 +74,47 @@ int main(void)
 	if(Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 1024) < 0)
 		log_error("Couldn't open audio device", "main", Mix_GetError(), 0);
 
-	txt_pos.x = 70;
-	txt_pos.y = 25;
-
-	blit_text(&cxt, 30, "MORSE TRAINER", "res/font.ttf", txt_pos);
-
-	txt_pos.x = 70;
-	txt_pos.y = 70;
-
-	blit_text(&cxt, 30, "CHOOSE MODE:", "res/font.ttf", txt_pos);
-
-	blit_button(&cxt, "res/base_100x200.png", abc_to_morse, "ASCII > MORSE", "res/font.ttf");
-	blit_button(&cxt, "res/base_100x200.png", morse_to_abc, "MORSE > ASCII", "res/font.ttf");
-
-	show(cxt);
-
-	// Main menu loop
-	while(opt == 0)
-	{
-		SDL_PollEvent(&ev);
-
-		if(clicked(ev, abc_to_morse)) {
-			opt = ASCIIMORSE;
-		} else if(clicked(ev, morse_to_abc)) {
-			opt = MORSEASCII;
-		} else if(ev.type == SDL_QUIT) {
-			close_app(&cxt);
-			return 0;
-		}
-	}
-
-	clear_screen(&cxt);
+	opt = MAIN_MENU;
 
 	while(opt != 0)
 	{
+		// Main menu loop
+		if(opt == MAIN_MENU)
+		{
+			txt_pos.x = 70;
+			txt_pos.y = 25;
+
+			blit_text(&cxt, 30, "MORSE TRAINER", "res/font.ttf", txt_pos);
+
+			txt_pos.x = 70;
+			txt_pos.y = 70;
+
+			blit_text(&cxt, 30, "CHOOSE MODE:", "res/font.ttf", txt_pos);
+
+			blit_button(&cxt, "res/base_100x200.png", abc_to_morse, "ASCII > MORSE", "res/font.ttf");
+			blit_button(&cxt, "res/base_100x200.png", morse_to_abc, "MORSE > ASCII", "res/font.ttf");
+
+			show(cxt);
+
+			while(opt == MAIN_MENU)
+			{
+				SDL_PollEvent(&ev);
+
+				if(clicked(ev, abc_to_morse)) {
+					opt = ASCIIMORSE;
+				} else if(clicked(ev, morse_to_abc)) {
+					opt = MORSEASCII;
+				} else if(ev.type == SDL_QUIT) {
+					close_app(&cxt);
+					return 0;
+				}
+			}
+
+			clear_screen(&cxt);
+		}
+
 		// get random number to define char to be trained
-		char_pos = rand() % 26;
+		char_pos = rand() % 36;
 
 		txt_pos.x = 70;
 		txt_pos.y = 70;
@@ -135,6 +148,7 @@ int main(void)
 			}
 
 			blit_button(&cxt, "res/base_100x200.png", ok, "OK", "res/font.ttf");
+			blit_button(&cxt, "res/base_100x200.png", back, "BACK", "res/font.ttf");
 
 			show(cxt);
 
@@ -156,6 +170,7 @@ int main(void)
 			}
 
 			blit_button(&cxt, "res/base_100x200.png", ok, "OK", "res/font.ttf");
+			blit_button(&cxt, "res/base_100x200.png", back, "BACK", "res/font.ttf");
 
 			show(cxt);
 
@@ -164,7 +179,7 @@ int main(void)
 
 		ok_click = 0;
 
-		while(ok_click != CLICKED_OK)
+		while(ok_click != CLICKED_OK && ok_click != CLICKED_BACK)
 		{
 			// wait 100 ms for the user to release the return key pressed for inputting the text
 			SDL_Delay(50);
@@ -174,8 +189,14 @@ int main(void)
 			SDL_PollEvent(&ev);
 
 			// is return pressed? if yes, leave loop, if no, stay in loop
-			if(keyboard[SDL_SCANCODE_RETURN] || clicked(ev, ok))
+			if(keyboard[SDL_SCANCODE_RETURN] || clicked(ev, ok)){
 				ok_click = CLICKED_OK;
+
+			} else if(keyboard[SDL_SCANCODE_ESCAPE] || clicked(ev, back)) {
+				clear_screen(&cxt);
+				opt = MAIN_MENU;
+				ok_click = CLICKED_BACK;
+			}
 
 			if(ev.type == SDL_QUIT)
 			{
