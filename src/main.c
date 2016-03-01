@@ -13,8 +13,8 @@
 #define ASCIIMORSE 1
 #define MORSEASCII 2
 #define MAIN_MENU 3
-#define CLICKED_OK 1
-#define CLICKED_BACK 2
+#define CLICKED_OK 4
+#define CLICKED_BACK 5
 
 int main(void)
 {
